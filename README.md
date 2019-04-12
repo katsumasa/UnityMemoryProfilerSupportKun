@@ -1,6 +1,5 @@
 # UnityMemoryProfilerSupportKun
-実機側から`UnityEditor`上の`MemoryProfiler`に対してSnapShotを実行タイミングを指定することが出来る便利クラスです。
-シーン切り替え時など特定のタイミングで`MemoryProfiler`のSnapShotを取ることが出来るのでメモリーリークの調査に役立てることが出来ると思います。
+実機側から`UnityEditor`上の`MemoryProfiler`に対してSnapShotを実行タイミングを指定することが出来る便利ツールです。
 ## 動作環境
 ### 動作確認済みUnity
 - Unity2017.4.24f1
@@ -12,8 +11,8 @@
 ## 必要パッケージ
 MemoryProfiler本体が別途必要ですので、下記のURLから取得して下さい。
 https://bitbucket.org/Unity-Technologies/memoryprofiler
-また`MemoryProfiler`に含まれる`PackedMemorySnapshotUtility.cs`
-`static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)`を`public static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)` に変更して下さい。
+また`MemoryProfiler`に含まれる`PackedMemorySnapshotUtility.cs`を一部改変する必要があります。
+`static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)`の前に`public`を付け`public static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)` として下さい。
 ## ファイル説明
 - UnityMemoryProfilerSupportKunEditor.cs
 UnityEditor側で使用するファイルです。`Editor`フォルダの下に置いて下さい。
@@ -24,7 +23,9 @@ UnityPlayer(アプリ）側で使用するファイルです。singletonのGameO
 ```
 UnityMemoryProfilerSupportKunClient.instance.Send("スナップショットのファイル名");
 ```
+シーン切り替え直前・直後に上記メソッドを実行し差分を比較することでメモリーリークの解決の糸口を見つけることが出来る可能性があります。
 また、UnityEditor側でスナップショットの保存が終了した際に、`UnityMemoryProfilerSupportKunClient.instance.isDone` が`true`を返します。
+
 ## ビルド設定
 `Development Build` 及び `AutoConnect Profiler` の両方にチェックを入れた状態でビルドを行って下さい。
 ## 使用方法
