@@ -1,0 +1,2 @@
+# UnityMemoryProfilerSupportKun
+MemoryProfilerのスナップショットを実機側からコントロールするツール
