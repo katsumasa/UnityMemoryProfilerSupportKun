@@ -7,6 +7,13 @@ using UnityEditor;
 using UnityEditor.MemoryProfiler;
 using UnityEditor.Networking.PlayerConnection;
 using UnityEngine.Networking.PlayerConnection;
+#if UNITY_2018_1_OR_NEWER
+using UnityEngine.Experimental.Networking.PlayerConnection;
+using ConnectionUtility = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUIUtility;
+using ConnectionGUILayout = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUILayout;
+#endif
+
+
 
 namespace Utj.UnityMemoryProfilerSupportKun
 {
@@ -28,9 +35,13 @@ namespace Utj.UnityMemoryProfilerSupportKun
         UnityEditor.MemoryProfiler.PackedMemorySnapshot m_snapshot;
 
         // AttachProfiler表示用
+#if UNITY_2018_1_OR_NEWER
+        IConnectionState attachProfilerState;
+#else
         Type AttachProfilerUI;
         MethodInfo m_attachProfilerUIOnGUILayOut;
         System.Object m_attachProfilerUI;
+#endif
 
 
         [MenuItem("Window/UnityMemoryProfilerSupportKunEditor")]
@@ -45,6 +56,12 @@ namespace Utj.UnityMemoryProfilerSupportKun
 
         void OnEnable()
         {
+#if UNITY_2018_1_OR_NEWER
+            if (attachProfilerState == null)
+            {
+                attachProfilerState = ConnectionUtility.GetAttachToPlayerState(this);
+            }
+#endif
             EditorConnection.instance.Initialize();
             EditorConnection.instance.Register(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
         }
@@ -52,6 +69,10 @@ namespace Utj.UnityMemoryProfilerSupportKun
 
         void OnDisable()
         {
+#if UNITY_2018_1_OR_NEWER
+            attachProfilerState.Dispose();
+            attachProfilerState = null;
+#endif
             EditorConnection.instance.Unregister(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
             EditorConnection.instance.DisconnectAll();
         }
@@ -92,21 +113,25 @@ namespace Utj.UnityMemoryProfilerSupportKun
                 UnityEditor.MemoryProfiler.MemorySnapshot.OnSnapshotReceived += IncomingSnapshot;
                 m_registered = true;
             }
+#if! UNITY_2018_1_OR_NEWER
             Reflection();
+#endif
         }
 
 
+#if  !UNITY_2018_1_OR_NEWER
         // この関数内の処理は全く、推奨出来ませんので参考にしないでください。
         void Reflection()
         {
-#if UNITY_2017
             // AttachProfilerUIとは
             // ProfilerやConsole WindowにあるTargetの選択用Pulldown UI
             // internal classの為、Relectionで無理やり
             if (AttachProfilerUI == null)
             {
                 Assembly assembly = Assembly.Load("UnityEditor");
-                AttachProfilerUI = assembly.GetType("UnityEditor.AttachProfilerUI");
+
+            AttachProfilerUI = assembly.GetType("UnityEditor.AttachProfilerUI");
+
             }
             if ((m_attachProfilerUI == null) && (AttachProfilerUI != null))
             {
@@ -122,22 +147,27 @@ namespace Utj.UnityMemoryProfilerSupportKun
             {
                 m_attachProfilerUIOnGUILayOut = AttachProfilerUI.GetMethod("OnGUILayout");
             }
-#elif UNITY_2018_OR_NEWER
-            // 2018ではAttachProilerUIの定義位置が変わったので一旦取りやめ
-#endif
-        }
 
+            // 2018ではAttachProilerUIの定義位置が変わったので一旦取りやめ
+
+        }
+#endif
 
         void OnGUI()
         {
             Initialize();
-            
+#if UNITY_2018_1_OR_NEWER
+            if (attachProfilerState != null)
+            {
+                ConnectionGUILayout.AttachToPlayerDropdown(attachProfilerState, EditorStyles.toolbarDropDown);
+            }
+#else
             // AttachProfiler
             if (m_attachProfilerUIOnGUILayOut != null && m_attachProfilerUI != null)
             {
                 m_attachProfilerUIOnGUILayOut.Invoke(m_attachProfilerUI, new object[] { this });
             }
-
+#endif
             // 接続済みPlayerのリスト表示部
             var playerCount = EditorConnection.instance.ConnectedPlayers.Count;
             StringBuilder builder = new StringBuilder();
