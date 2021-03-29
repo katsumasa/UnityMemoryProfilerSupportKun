@@ -10,7 +10,6 @@ UnityMemoryProfilerSupportKunはスクリプトからのCaptureを容易に運�
 - ScriptからMemoryProfilerのSnapshotを実行し、Application.temporaryCachePathへ保存します。
 - 端末上に保存されたSnapshotをUnityEditorから取得出来ます。
 
-
 ## 動作環境
 
 ### 動作確認済みUnity
