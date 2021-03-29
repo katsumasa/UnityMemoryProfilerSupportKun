@@ -1,5 +1,7 @@
 ﻿// (C) UTJ
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using UnityEngine;
@@ -9,8 +11,6 @@ using UnityEditor.Networking.PlayerConnection;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine.Profiling.Memory.Experimental;
 using UnityEditor.Profiling.Memory.Experimental;
-
-
 #if UNITY_2018_1_OR_NEWER
 using UnityEngine.Experimental.Networking.PlayerConnection;
 using ConnectionUtility = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUIUtility;
@@ -21,24 +21,14 @@ using ConnectionGUILayout = UnityEditor.Experimental.Networking.PlayerConnection
 
 namespace Utj.UnityMemoryProfilerSupportKun
 {
-    //
-    // UnityMemoryProfilerSupportKunのUnityEditor側の処理
-    // MemoryProfilerのWindowが開いている状態で使用す必要があります。
-    // ※MemoryProfilerWindowが継承して使用出来ればもう少しスマートになるのですが・・
-    //
+    /// <summary>
+    /// UnityMemoryProfilerSupportKunのUnityEditor側の処理    
+    /// </summary>
     public class UnityMemoryProfilerSupportKunEditor : EditorWindow
-    {
-
-        static readonly string TakeSnapShotText = "Take SnapShot";
-        static string m_savePath;
-        static string m_fname;
-
-        [NonSerialized]
-        private bool m_registered = false;
-
-        [NonSerialized]
-        UnityEditor.MemoryProfiler.PackedMemorySnapshot m_snapshot;
-
+    {            
+        Vector2 scrollPos;
+        List<GUIContent> m_snaps;
+    
         // AttachProfiler表示用
 #if UNITY_2018_1_OR_NEWER
         IConnectionState attachProfilerState;
@@ -51,8 +41,7 @@ namespace Utj.UnityMemoryProfilerSupportKun
 
         [MenuItem("Window/UnityMemoryProfilerSupportKunEditor")]
         private static void Create()
-        {
-            m_savePath = System.IO.Directory.GetCurrentDirectory() + "/Temp";
+        {            
             UnityMemoryProfilerSupportKunEditor window = (UnityMemoryProfilerSupportKunEditor)EditorWindow.GetWindow(typeof(UnityMemoryProfilerSupportKunEditor));
             window.Show();
             window.titleContent = new GUIContent("UnityMemoryProfilerSupportKunEditor");
@@ -66,8 +55,7 @@ namespace Utj.UnityMemoryProfilerSupportKun
             {
                 attachProfilerState = ConnectionUtility.GetAttachToPlayerState(this);
             }
-#endif
-            UnityEditor.MemoryProfiler.MemorySnapshot.OnSnapshotReceived += IncomingSnapshot;
+#endif            
             EditorConnection.instance.Initialize();
             EditorConnection.instance.Register(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
         }
@@ -78,57 +66,92 @@ namespace Utj.UnityMemoryProfilerSupportKun
 #if UNITY_2018_1_OR_NEWER
             attachProfilerState.Dispose();
             attachProfilerState = null;
-#endif
-            UnityEditor.MemoryProfiler.MemorySnapshot.OnSnapshotReceived -= IncomingSnapshot;
+#endif            
             EditorConnection.instance.Unregister(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
             EditorConnection.instance.DisconnectAll();
         }
 
 
-        // Playerからのメッセージ処理用イベント関数
+        /// <summary>
+        /// Playerからのメッセージを処理する
+        /// </summary>
+        /// <param name="args"></param>
         private void OnMessageEvent(MessageEventArgs args)
         {
-            var text = Encoding.ASCII.GetString(args.data);
-            Debug.Log("Message from player: " + text);
-            if (text.Contains(TakeSnapShotText))
-            {                
-                var fname = text.Substring(TakeSnapShotText.Length + 1);
-                m_fname = string.Format("{0}/{1}{2}", m_savePath, fname, ".memsnap3");
-                UnityEditor.EditorUtility.DisplayProgressBar("Take Snapshot", "Downloading Snapshot...", 0.0f);
-                try
-                {
-                    UnityEditor.MemoryProfiler.MemorySnapshot.RequestNewSnapshot();                                        
-                }
-                finally
-                {
-                    // var fname = text.Substring(TakeSnapShotText.Length + 1);
-                    // var fpath = string.Format("{0}/{1}{2}", m_savePath, fname, ".memsnap3");
-                    // 注意:この関数はprivateになっているのでpunlicに変更して下さい。
-                    // PackedMemorySnapshotUtility.SaveToFile(fpath, m_snapshot);                                        
-                }
+            MessageDataBase messageDataBase;
+            Converter.BytesToObject<MessageDataBase>(args.data, out messageDataBase);
+            Debug.Log("UnityMemoryProfilerSupportKunClient.OnMessageEvent:" + messageDataBase.messageID);
+            switch (messageDataBase.messageID)
+            {
+                case MessageID.Dir:
+                    {
+                        MessageDataDir messageDataDir;
+                        Converter.BytesToObject<MessageDataDir>(args.data, out messageDataDir);
+                        m_snaps = new List<GUIContent>();
+                        for (var i = 0; i < messageDataDir.len; i++)
+                        {
+                            var fname = System.IO.Path.GetFileName(messageDataDir.snaps[i]);
+                            var texture = new Texture2D(64, 64);
+                            var content = new GUIContent(fname,texture);
+                            m_snaps.Add(content);
+                        }
+                    }
+                    break;
+
+                case MessageID.DownLoad:
+                    {
+                        MessageDataDownload messageDataDownload;
+                        Converter.BytesToObject<MessageDataDownload>(args.data, out messageDataDownload);
+                        var path = EditorUtility.SaveFilePanel(
+                            "Save snapshot file",
+                            "",
+                            messageDataDownload.fname,
+                            "snap"
+                            );
+                        if (path.Length != 0)
+                        {
+                            System.IO.File.WriteAllBytes(path, messageDataDownload.snap);
+                            if (messageDataDownload.image != null)
+                            {
+                                var imagePath = System.IO.Path.ChangeExtension(path, "png");
+                                System.IO.File.WriteAllBytes(imagePath, messageDataDownload.image);
+                                for (var i = 0; i < m_snaps.Count; i++)
+                                {
+                                    if (m_snaps[i].text == messageDataDownload.fname)
+                                    {
+                                        var src = new Texture2D(64, 64);
+                                        src.LoadImage(messageDataDownload.image);
+                                        var dst = new Texture2D(64, 64);
+                                        Graphics.ConvertTexture(src, dst);
+                                        m_snaps[i] = new GUIContent(messageDataDownload.fname, dst);                                        
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case MessageID.Delete:
+                    {
+                        MessageDataDelete messageDataDelete;
+                        Converter.BytesToObject<MessageDataDelete>(args.data, out messageDataDelete);
+                        for(var i = 0; i < m_snaps.Count; i++)
+                        {
+                            if(m_snaps[i].text == messageDataDelete.fname)
+                            {
+                                m_snaps.Remove(m_snaps[i]);
+                                break;
+                            }
+                        }
+                    }
+                    break;            
             }
         }
-
-
-        
-
-
-
-        void FinishCB(string str,bool isSuccess)
-        {
-            EditorConnection.instance.Send(UnityMemoryProfilerSupportKunClient.kMsgSendEditorToPlayer, Encoding.ASCII.GetBytes("Success"));
-            EditorUtility.ClearProgressBar();
-        }
-
+       
 
         public void Initialize()
         {
-            if (!m_registered)
-            {
-                
-                
-                m_registered = true;
-            }
 #if! UNITY_2018_1_OR_NEWER
             Reflection();
 #endif
@@ -172,6 +195,9 @@ namespace Utj.UnityMemoryProfilerSupportKun
         void OnGUI()
         {
             Initialize();
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("Connect to ");
 #if UNITY_2018_1_OR_NEWER
             if (attachProfilerState != null)
             {
@@ -184,40 +210,60 @@ namespace Utj.UnityMemoryProfilerSupportKun
                 m_attachProfilerUIOnGUILayOut.Invoke(m_attachProfilerUI, new object[] { this });
             }
 #endif
-            // 接続済みPlayerのリスト表示部
-            var playerCount = EditorConnection.instance.ConnectedPlayers.Count;
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine(string.Format("{0} players connected.", playerCount));
-            int i = 0;
-            foreach (var p in EditorConnection.instance.ConnectedPlayers)
-            {
-                builder.AppendLine(string.Format("[{0}] - {1} {2}", i++, p.name, p.playerId));
-            }
-            EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info);
 
-            // Snapshot保存先
-            EditorGUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label("SavePath");
-            GUILayout.TextField(m_savePath, GUILayout.Width(300));
-            if (GUILayout.Button("Browse"))
+            if (GUILayout.Button("Get Snap List"))
             {
-                var path= EditorUtility.OpenFolderPanel("Save Directory Path", m_savePath, "");
-                if(path != "")
-                {
-                    m_savePath = path;
-                }
+                MessageDataDir messageDataDir = new MessageDataDir();
+                messageDataDir.messageID = MessageID.Dir;
+                byte[] bytes;
+                Converter.ObjectToBytes(messageDataDir, out bytes);
+                EditorConnection.instance.Send(UnityMemoryProfilerSupportKunClient.kMsgSendEditorToPlayer, bytes);
             }
             EditorGUILayout.EndHorizontal();
-        }
 
-
-        void IncomingSnapshot(UnityEditor.MemoryProfiler.PackedMemorySnapshot snapshot)
-        {
-            EditorUtility.ClearProgressBar();
-            UnityEditor.Profiling.Memory.Experimental.PackedMemorySnapshot.Convert(snapshot, m_fname);
-
-            var snap = UnityEditor.Profiling.Memory.Experimental.PackedMemorySnapshot.Load(m_fname);
-            Debug.Log(snap);
+            // 接続済みPlayerのリスト表示部
+            {
+                var playerCount = EditorConnection.instance.ConnectedPlayers.Count;
+                StringBuilder builder = new StringBuilder();
+                builder.AppendLine(string.Format("{0} players connected.", playerCount));
+                int i = 0;
+                foreach (var p in EditorConnection.instance.ConnectedPlayers)
+                {
+                    builder.AppendLine(string.Format("[{0}] - {1} {2}", i++, p.name, p.playerId));
+                }
+                EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info);
+            }
+                     
+            
+            if(m_snaps != null)
+            {
+                scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+                for (var i = 0; i < m_snaps.Count; i++)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(m_snaps[i]);
+                    if (GUILayout.Button("DownLoad", GUILayout.Width(75)))
+                    {
+                        MessageDataDownload messageDataDownload = new MessageDataDownload();
+                        messageDataDownload.messageID = MessageID.DownLoad;
+                        messageDataDownload.fname = m_snaps[i].text;
+                        byte[] bytes;
+                        Converter.ObjectToBytes(messageDataDownload, out bytes);
+                        EditorConnection.instance.Send(UnityMemoryProfilerSupportKunClient.kMsgSendEditorToPlayer, bytes);
+                    }
+                    if (GUILayout.Button("Delete" ,GUILayout.Width(75)))
+                    {
+                        MessageDataDelete messageDataDelete = new MessageDataDelete();
+                        messageDataDelete.messageID = MessageID.Delete;
+                        messageDataDelete.fname = m_snaps[i].text;
+                        byte[] bytes;
+                        Converter.ObjectToBytes(messageDataDelete, out bytes);
+                        EditorConnection.instance.Send(UnityMemoryProfilerSupportKunClient.kMsgSendEditorToPlayer, bytes);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndScrollView();
+            }
         }
     }
 }

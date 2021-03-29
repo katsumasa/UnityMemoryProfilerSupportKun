@@ -11,7 +11,7 @@ public class Simple : MonoBehaviour {
 
     public void TakeSnapShot()
     {
-        UnityMemoryProfilerSupportKunClient.instance.Send(m_no.ToString());
+        UnityMemoryProfilerSupportKunClient.instance.TakeSnapshot(m_no.ToString());
         m_no++;
     }
 

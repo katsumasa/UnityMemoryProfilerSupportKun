@@ -62,7 +62,7 @@ public class SceneSub : MonoBehaviour {
         var delta = currentTime - m_time;
         if (delta > 3.0f)
         {
-            UnityMemoryProfilerSupportKunClient.instance.Send(string.Format("{0:00000A}", m_snapShotNo++));
+            UnityMemoryProfilerSupportKunClient.instance.TakeSnapshot(string.Format("{0:00000A}", m_snapShotNo++));
             m_task = Task0002;
         }
     }

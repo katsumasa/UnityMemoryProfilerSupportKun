@@ -97,7 +97,7 @@ public class SceneMain : MonoBehaviour {
         {
             return;
         }
-        UnityMemoryProfilerSupportKunClient.instance.Send(string.Format("{0:00000B}", m_snapShotNo++));
+        UnityMemoryProfilerSupportKunClient.instance.TakeSnapshot(string.Format("{0:00000B}", m_snapShotNo++));
         m_lastInterval = Time.realtimeSinceStartup;
         m_task = TaskMemoryProfilerWait;
     }
