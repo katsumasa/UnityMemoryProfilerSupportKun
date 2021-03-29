@@ -43,6 +43,8 @@ UnityMemoryProfilerSupportKunClient.instance.isDone
 
 Window->UnityMemoryProfilerSupportKunWindowでWindowが開きます。
 
+![image](https://user-images.githubusercontent.com/29646672/112799481-60a17980-90a9-11eb-9e94-2a27f52c1457.png)
+
 #### Connect to
 
 接続先のPlayerを選択します。
