@@ -1,45 +1,77 @@
 # UnityMemoryProfilerSupportKun
-実機側から`UnityEditor`上の`MemoryProfiler`に対してSnapShotを実行タイミングを指定することが出来る便利ツールです。
-## 動作環境
-### 動作確認済みUnity
-- Unity2017.4.24f1
-- Unity2018.3.12f1
-### 動作確認済みプラットフォーム
-- iOS
-- Android
-- Windows 10
-## 必要パッケージ
-MemoryProfiler本体が別途必要ですので、下記のURLから取得して下さい。
-https://bitbucket.org/Unity-Technologies/memoryprofiler
-また`MemoryProfiler`に含まれる`PackedMemorySnapshotUtility.cs`を一部改変する必要があります。
-`static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)`の前に`public`を付け`public static void SaveToFile(string filePath, PackedMemorySnapshot snapshot)` として下さい。
-## ファイル説明
-- UnityMemoryProfilerSupportKunEditor.cs
-UnityEditor側で使用するファイルです。`Editor`フォルダの下に置いて下さい。
-- UnityMemoryProfilerSupportKunEditor.cs
-UnityPlayer(アプリ）側で使用するファイルです。singletonのGameObjectとしてSceneに配置して使用して下さい。
-## スナップショットの撮り方
-スナップショットを撮りたいタイミングで下記のメソッドを実行して下さい。
-```
-UnityMemoryProfilerSupportKunClient.instance.Send("スナップショットのファイル名");
-```
-シーン切り替え直前・直後に上記メソッドを実行し差分を比較することでメモリーリークの解決の糸口を見つけることが出来る可能性があります。
-また、UnityEditor側でスナップショットの保存が終了した際に、`UnityMemoryProfilerSupportKunClient.instance.isDone` が`true`を返します。
 
-## ビルド設定
-`Development Build` 及び `AutoConnect Profiler` の両方にチェックを入れた状態でビルドを行って下さい。
-## 使用方法
-前提条件として`MemoryProfiler`が使用可能である必要があります。
-`UnityMemorySProfilerSupportKun` Windowの他に`MemoryProfiler`及び`Profiler`Windowを開き、`Active Profiler`を計測対象のアプリケーションと接続して下さい。
-`Active Profiler`との接続に関する詳細は下記のURLをご確認下さい。
-https://docs.unity3d.com/ja/current/Manual/ProfilerWindow.html
+## 概要
+
+[MemoryProfiler](https://docs.unity3d.com/Packages/com.unity.memoryprofiler@0.2/manual/index.html)はメモリーリーク等、メモリー関連の調査に必要不可欠なツールですが、GUIから手動で行う場合、完全に同じタイミングでCaptureを実行することは出来ません。
+UnityMemoryProfilerSupportKunはスクリプトからのCaptureを容易に運用する為のRuntime APIとEditor拡張をセットにしたものです。
+
+## 出来ること
+
+- ScriptからMemoryProfilerのSnapshotを実行し、Application.temporaryCachePathへ保存します。
+- 端末上に保存されたSnapshotをUnityEditorから取得出来ます。
+
+## 動作環境
+
+### 動作確認済みUnity
+
+- Unity2019.4.19f1
+
+### 動作確認済みプラットフォーム
+
+- Android
+
+## 使い方
+
+- Prefabs/UnityMemoryProfilerをSceneに配置して下さい。このPrefabは常に存在している必要があることに注意して下さい。
+- アプリケーションをビルドする際、`Development Build` 及び `AutoConnect Profiler` の両方にチェックを入れた状態でビルドを行って下さい。
+- MemoryProfilerのCaptureを行う箇所で下記のAPIを実行して下さい。
+
+```cs
+UnityMemoryProfilerSupportKunClient.instance.TakeCapture("スナップショットのファイル名");
+```
+
+Capture処理が完了すると、下記の変数が`true`になります。
+
+```cs
+UnityMemoryProfilerSupportKunClient.instance.isDone
+```
+
+例えば、シーン切り替え直前・直後に上記メソッドを実行し差分を比較することでメモリーリークの解決の糸口を見つけることが出来る可能性があります。
+
+### UnityMemoryProfilerSupportKunWindow
+
+Window->UnityMemoryProfilerSupportKunWindowでWindowが開きます。
+
+![image](https://user-images.githubusercontent.com/29646672/112799481-60a17980-90a9-11eb-9e94-2a27f52c1457.png)
+
+#### Connect to
+
+接続先のPlayerを選択します。
+
+#### Get Snap List
+
+端末に保存されたMemoryProfilerのsnapの一覧を取得します。
+
+#### DownLoad
+
+指定されたsnapを任意のフォルダーにダウンロードします。
+
+#### Delete
+
+指定されたsnapを端末から削除します。
 
 ## サンプルプログラム
+
 下記の２種類のサンプルを用意しています。
+
 ### Simple
+
 実機側のボタンを押すことでSnapShotを取るシンプルなサンプル。シーン`simple.unty`のみビルドの対象として下さい。
+
 ### SceneMain
+
 Scene切り替えのタイミングでSnapShotを取るサンプル。下記の３シーンをビルドに含めて下さい。
+
 - `SceneMain.unity`
 - `SceneSub0001.unity`
 - `SceneSub0002.unity`
