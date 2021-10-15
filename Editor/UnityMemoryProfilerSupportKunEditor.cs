@@ -11,7 +11,11 @@ using UnityEditor.Networking.PlayerConnection;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine.Profiling.Memory.Experimental;
 using UnityEditor.Profiling.Memory.Experimental;
-#if UNITY_2018_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
+using ConnectionUtility = UnityEditor.Networking.PlayerConnection.PlayerConnectionGUIUtility;
+using ConnectionGUILayout = UnityEditor.Networking.PlayerConnection.PlayerConnectionGUILayout;
+using UnityEngine.Networking.PlayerConnection;
+#elif UNITY_2018_1_OR_NEWER
 using UnityEngine.Experimental.Networking.PlayerConnection;
 using ConnectionUtility = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUIUtility;
 using ConnectionGUILayout = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUILayout;
@@ -55,7 +59,7 @@ namespace Utj.UnityMemoryProfilerSupportKun.Editor
             {
                 attachProfilerState = ConnectionUtility.GetAttachToPlayerState(this);
             }
-#endif            
+#endif
             EditorConnection.instance.Initialize();
             EditorConnection.instance.Register(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
         }
@@ -66,7 +70,7 @@ namespace Utj.UnityMemoryProfilerSupportKun.Editor
 #if UNITY_2018_1_OR_NEWER
             attachProfilerState.Dispose();
             attachProfilerState = null;
-#endif            
+#endif
             EditorConnection.instance.Unregister(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
             EditorConnection.instance.DisconnectAll();
         }
@@ -152,13 +156,13 @@ namespace Utj.UnityMemoryProfilerSupportKun.Editor
 
         public void Initialize()
         {
-#if! UNITY_2018_1_OR_NEWER
+#if !UNITY_2018_1_OR_NEWER
             Reflection();
 #endif
         }
 
 
-#if  !UNITY_2018_1_OR_NEWER
+#if !UNITY_2018_1_OR_NEWER
         // この関数内の処理は全く、推奨出来ませんので参考にしないでください。
         void Reflection()
         {
