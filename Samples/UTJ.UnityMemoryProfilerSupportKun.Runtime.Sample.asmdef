@@ -1,0 +1,15 @@
+{
+    "name": "UTJ.UnityMemoryProfilerSupportKun.Runtime.Sample",
+    "references": [
+        "GUID:d24a96fb37c5a514b9dbaa956e332b41"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

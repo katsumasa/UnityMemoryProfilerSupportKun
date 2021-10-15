@@ -1,0 +1,17 @@
+{
+    "name": "UTJ.UnityMemoryProfilerSupportKun.Editor",
+    "references": [
+        "GUID:d24a96fb37c5a514b9dbaa956e332b41"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
