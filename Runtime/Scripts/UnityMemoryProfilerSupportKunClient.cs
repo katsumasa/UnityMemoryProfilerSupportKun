@@ -1,12 +1,10 @@
-﻿// (C) UTJ
+﻿//
+// (C) Katsumasa.Kimura@UTJ
+//
 using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine.Profiling.Memory.Experimental;
 
@@ -239,12 +237,6 @@ namespace Utj.UnityMemoryProfilerSupportKun
         {
             PlayerConnection.instance.RegisterConnection(ConnectionCB);
             PlayerConnection.instance.RegisterDisconnection(DisconnectionCB);
-        }
-
-
-        // Update is called once per frame
-        void Update()
-        {
         }
 
 

@@ -19,7 +19,7 @@ using ConnectionGUILayout = UnityEditor.Experimental.Networking.PlayerConnection
 
 
 
-namespace Utj.UnityMemoryProfilerSupportKun
+namespace Utj.UnityMemoryProfilerSupportKun.Editor
 {
     /// <summary>
     /// UnityMemoryProfilerSupportKunのUnityEditor側の処理    
@@ -39,7 +39,7 @@ namespace Utj.UnityMemoryProfilerSupportKun
 #endif
 
 
-        [MenuItem("Window/UnityMemoryProfilerSupportKunEditor")]
+        [MenuItem("Window/UTJ/UnityMemoryProfilerSupportKun/Open")]
         private static void Create()
         {            
             UnityMemoryProfilerSupportKunEditor window = (UnityMemoryProfilerSupportKunEditor)EditorWindow.GetWindow(typeof(UnityMemoryProfilerSupportKunEditor));
