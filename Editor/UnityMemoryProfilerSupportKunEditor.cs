@@ -57,10 +57,14 @@ namespace Utj.UnityMemoryProfilerSupportKun.Editor
 #if UNITY_2018_1_OR_NEWER
             if (attachProfilerState == null)
             {
+#if UNITY_2020_1_OR_NEWER
+                attachProfilerState = ConnectionUtility.GetConnectionState(this);
+#else
                 attachProfilerState = ConnectionUtility.GetAttachToPlayerState(this);
+#endif
             }
 #endif
-            EditorConnection.instance.Initialize();
+                EditorConnection.instance.Initialize();
             EditorConnection.instance.Register(UnityMemoryProfilerSupportKunClient.kMsgSendPlayerToEditor, OnMessageEvent);
         }
 
@@ -205,11 +209,15 @@ namespace Utj.UnityMemoryProfilerSupportKun.Editor
 #if UNITY_2018_1_OR_NEWER
             if (attachProfilerState != null)
             {
+#if UNITY_2020_1_OR_NEWER
+                ConnectionGUILayout.ConnectionTargetSelectionDropdown(attachProfilerState, EditorStyles.toolbarDropDown);
+#else
                 ConnectionGUILayout.AttachToPlayerDropdown(attachProfilerState, EditorStyles.toolbarDropDown);
+#endif
             }
 #else
-            // AttachProfiler
-            if (m_attachProfilerUIOnGUILayOut != null && m_attachProfilerUI != null)
+                // AttachProfiler
+                if (m_attachProfilerUIOnGUILayOut != null && m_attachProfilerUI != null)
             {
                 m_attachProfilerUIOnGUILayOut.Invoke(m_attachProfilerUI, new object[] { this });
             }
