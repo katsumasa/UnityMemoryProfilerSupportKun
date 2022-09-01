@@ -26,7 +26,7 @@ UnityMemoryProfilerSupportKunはスクリプトからのCaptureを容易に運�
 
 ### git を使用する場合
 
-```
+```:console
 git clone https://github.com/katsumasa/UnityMemoryProfilerSupportKun.git
 ```
 
@@ -37,12 +37,11 @@ git clone https://github.com/katsumasa/UnityMemoryProfilerSupportKun.git
 3. パッケージを加えるためのオプションが表示されます。</br>
    ![image](https://user-images.githubusercontent.com/29646672/137414541-28598d85-5e02-4ad1-a3f4-fa66db9b5e23.png)
 4. ドロップダウンから Add package from git URL を選択します。テキストフィールドと Add ボタンが表示されます
-5. テキストフィールドに　https://github.com/katsumasa/UnityMemoryProfilerSupportKun.git　を入力します
-
+5. テキストフィールドに`https://github.com/katsumasa/UnityMemoryProfilerSupportKun.git`を入力します
 
 ## 使い方
 
-- Prefabs/UnityMemoryProfilerをSceneに配置して下さい。このPrefabは常に存在している必要があることに注意して下さい。
+- [Runtime/Prefabs/UnityMemoryProfilerSupportKun.prefab](https://github.com/katsumasa/UnityMemoryProfilerSupportKun/blob/master/Runtime/Prefabs/UnityMemoryProfilerSupportKun.prefab)をSceneに配置して下さい。このPrefabは常に存在している必要があることに注意して下さい。
 - アプリケーションをビルドする際、`Development Build` 及び `AutoConnect Profiler` の両方にチェックを入れた状態でビルドを行って下さい。
 - MemoryProfilerのCaptureを行う箇所で下記のAPIを実行して下さい。
 
@@ -83,6 +82,7 @@ Window->UnityMemoryProfilerSupportKunWindowでWindowが開きます。
 ## サンプルプログラム
 
 下記の２種類のサンプルを用意しています。
+※PackageManagerからインストールした場合、直接Sceneを開く事が出来ないので、コピーするなどして御使用下さい。
 
 ### Simple
 
@@ -95,3 +95,7 @@ Scene切り替えのタイミングでSnapShotを取るサンプル。下記の�
 - `SceneMain.unity`
 - `SceneSub0001.unity`
 - `SceneSub0002.unity`
+
+## その他
+
+不具合・ご要望は[issue](https://github.com/katsumasa/UnityMemoryProfilerSupportKun/issues)からご連絡下さい。
