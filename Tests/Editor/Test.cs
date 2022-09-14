@@ -11,7 +11,7 @@ public  class Test
 {
     static Action<string, bool> action;
 
-    [MenuItem("Window/UTJ/UnityMemoryProfilerSupportKun/TEST")]
+    //[MenuItem("Window/UTJ/UnityMemoryProfilerSupportKun/TEST")]
     public static void Func()
     {
 
